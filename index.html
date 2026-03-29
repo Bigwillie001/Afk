@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AFK$ — Just Be Present</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne+Mono&family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #07090f;
+    --surface: #0d111c;
+    --border: rgba(120,180,255,0.08);
+    --cyan: #7dd3fc;
+    --cyan-dim: rgba(125,211,252,0.15);
+    --amber: #fbbf24;
+    --amber-dim: rgba(251,191,36,0.12);
+    --white: #f0f4ff;
+    --muted: #4a5568;
+    --text-dim: #8899aa;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* ── CANVAS BACKGROUND ── */
+  #bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── GRAIN OVERLAY ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.4;
+  }
+
+  .wrap { position: relative; z-index: 2; }
+
+  /* ── NAV ── */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(7,9,15,0.7);
+  }
+
+  .nav-logo {
+    font-family: 'Syne Mono', monospace;
+    font-size: 1.1rem;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-shadow: 0 0 20px rgba(125,211,252,0.5);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .nav-btn {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-radius: 3px;
+    transition: all 0.3s;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+
+  .nav-btn:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: var(--cyan-dim);
+    box-shadow: 0 0 15px rgba(125,211,252,0.1);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.35em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    animation: fadeUp 1s ease both;
+  }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(5rem, 18vw, 14rem);
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    position: relative;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 1s 0.1s ease both;
+  }
+
+  .hero-title .main-text {
+    display: block;
+    background: linear-gradient(135deg, #fff 0%, var(--cyan) 60%, var(--amber) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 40px rgba(125,211,252,0.3));
+  }
+
+  /* glitch */
+  .glitch {
+    position: relative;
+  }
+  .glitch::before,
+  .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #fff 0%, var(--cyan) 60%, var(--amber) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .glitch::before {
+    left: 2px;
+    text-shadow: none;
+    clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+    transform: translateX(-2px);
+    animation: glitch1 4s infinite;
+    opacity: 0.7;
+  }
+  .glitch::after {
+    left: -2px;
+    clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+    transform: translateX(2px);
+    animation: glitch2 4s infinite;
+    opacity: 0.7;
+    filter: hue-rotate(90deg);
+  }
+
+  @keyframes glitch1 {
+    0%,94%,100% { transform: translateX(0); opacity: 0; }
+    95% { transform: translateX(-3px); opacity: 0.7; }
+    97% { transform: translateX(3px); opacity: 0.7; }
+    99% { transform: translateX(0); opacity: 0; }
+  }
+  @keyframes glitch2 {
+    0%,94%,100% { transform: translateX(0); opacity: 0; }
+    95% { transform: translateX(3px); opacity: 0.7; }
+    97% { transform: translateX(-3px); opacity: 0.7; }
+    99% { transform: translateX(0); opacity: 0; }
+  }
+
+  .hero-tagline {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(0.9rem, 2.5vw, 1.3rem);
+    color: var(--text-dim);
+    max-width: 460px;
+    line-height: 1.7;
+    margin-bottom: 3rem;
+    animation: fadeUp 1s 0.2s ease both;
+  }
+
+  .hero-tagline span { color: var(--white); font-style: normal; font-weight: 400; }
+
+  .hero-ctas {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 3rem;
+    animation: fadeUp 1s 0.3s ease both;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.9rem 2rem;
+    background: linear-gradient(135deg, #7dd3fc22, #7dd3fc44);
+    border: 1px solid rgba(125,211,252,0.4);
+    color: var(--cyan);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(125,211,252,0.1));
+    transform: translateX(-100%);
+    transition: transform 0.4s;
+  }
+
+  .btn-primary:hover::before { transform: translateX(0); }
+  .btn-primary:hover {
+    border-color: var(--cyan);
+    box-shadow: 0 0 30px rgba(125,211,252,0.2), inset 0 0 20px rgba(125,211,252,0.05);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.9rem 2rem;
+    background: linear-gradient(135deg, #fbbf2412, #fbbf2422);
+    border: 1px solid rgba(251,191,36,0.3);
+    color: var(--amber);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--amber);
+    box-shadow: 0 0 30px rgba(251,191,36,0.15);
+    transform: translateY(-1px);
+  }
+
+  /* ── CA BOX ── */
+  .ca-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.7rem 1.2rem;
+    animation: fadeUp 1s 0.4s ease both;
+    cursor: pointer;
+    transition: all 0.3s;
+    max-width: 90vw;
+  }
+
+  .ca-box:hover {
+    border-color: rgba(125,211,252,0.2);
+    background: rgba(13,17,28,0.9);
+  }
+
+  .ca-label {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .ca-address {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--cyan);
+    word-break: break-all;
+    opacity: 0.8;
+  }
+
+  .ca-copy {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-dim);
+    transition: all 0.2s;
+  }
+
+  .ca-box:hover .ca-copy {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  .copy-toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--cyan);
+    color: var(--bg);
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    padding: 0.6rem 1.4rem;
+    border-radius: 4px;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  .copy-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), var(--border), transparent);
+  }
+
+  /* ── MASCOT SECTION ── */
+  .mascot-section {
+    padding: 6rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+  }
+
+  .mascot-label {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.4em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .mascot-frame {
+    position: relative;
+    width: 220px;
+    height: 220px;
+  }
+
+  .mascot-glow {
+    position: absolute;
+    inset: -20px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(125,211,252,0.12) 0%, transparent 70%);
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%,100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.08); opacity: 1; }
+  }
+
+  .mascot-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 1px solid rgba(125,211,252,0.2);
+    position: relative;
+    z-index: 1;
+    filter: saturate(0.85) brightness(0.95);
+  }
+
+  .mascot-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 1px dashed rgba(125,211,252,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: var(--surface);
+    position: relative;
+    z-index: 1;
+  }
+
+  .mascot-placeholder svg { opacity: 0.2; }
+
+  .mascot-placeholder-text {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .mascot-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    color: var(--white);
+  }
+
+  .mascot-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-top: -1.5rem;
+  }
+
+  /* ── COMMUNITY ── */
+  .community-section {
+    padding: 4rem 2rem 6rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .section-heading {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.4em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .social-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .social-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 1rem 1.8rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    text-decoration: none;
+    border-radius: 6px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    transition: all 0.3s;
+    min-width: 160px;
+    justify-content: center;
+  }
+
+  .social-btn.x-btn:hover {
+    border-color: #fff;
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 0 25px rgba(255,255,255,0.06);
+    transform: translateY(-2px);
+  }
+
+  .social-btn.tiktok-btn:hover {
+    border-color: #fe2c55;
+    color: #fe2c55;
+    background: rgba(254,44,85,0.05);
+    box-shadow: 0 0 25px rgba(254,44,85,0.1);
+    transform: translateY(-2px);
+  }
+
+  .social-icon {
+    flex-shrink: 0;
+  }
+
+  /* ── PHILOSOPHY ── */
+  .philosophy {
+    padding: 5rem 2rem;
+    text-align: center;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  .philosophy p {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    line-height: 1.9;
+    color: var(--text-dim);
+  }
+
+  .philosophy p span {
+    color: var(--white);
+    font-weight: 400;
+  }
+
+  .philosophy .big-quote {
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--white);
+    line-height: 1.4;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+    gap: 1rem;
+  }
+
+  .footer-logo {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    opacity: 0.5;
+  }
+
+  .footer-disclaimer {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.65rem;
+    color: var(--muted);
+    max-width: 400px;
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TICKER BAR ── */
+  .ticker {
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 0;
+    background: rgba(7,9,15,0.5);
+  }
+
+  .ticker-inner {
+    display: flex;
+    gap: 4rem;
+    animation: ticker 20s linear infinite;
+    white-space: nowrap;
+    width: max-content;
+  }
+
+  .ticker-item {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .ticker-item span { color: var(--cyan); }
+
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ── SCROLL HINT ── */
+  .scroll-hint {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    animation: fadeUp 1s 1s ease both;
+  }
+
+  .scroll-hint span {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--muted), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%,100% { transform: scaleY(1); opacity: 0.4; }
+    50% { transform: scaleY(0.6); opacity: 0.8; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    nav { padding: 1rem 1.2rem; }
+    .hero { padding: 3rem 1.2rem; }
+    .footer-disclaimer { text-align: left; }
+    footer { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="wrap">
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">AFK$</div>
+    <div class="nav-links">
+      <a href="https://jup.ag/swap/SOL-kMKX8hBaj3BTRBbeYix9c16EieBP5dih8DTSSwCpump" target="_blank" class="nav-btn">Buy</a>
+      <a href="https://dexscreener.com/solana/kMKX8hBaj3BTRBbeYix9c16EieBP5dih8DTSSwCpump" target="_blank" class="nav-btn">Chart</a>
+    </div>
+  </nav>
+
+  <!-- TICKER -->
+  <div class="ticker">
+    <div class="ticker-inner" id="ticker-inner">
+      <span class="ticker-item">AFK$ <span>✦</span></span>
+      <span class="ticker-item">just be present <span>✦</span></span>
+      <span class="ticker-item">no timelines <span>✦</span></span>
+      <span class="ticker-item">no pressure <span>✦</span></span>
+      <span class="ticker-item">solana <span>✦</span></span>
+      <span class="ticker-item">log off. tune in <span>✦</span></span>
+      <span class="ticker-item">AFK$ <span>✦</span></span>
+      <span class="ticker-item">just be present <span>✦</span></span>
+      <span class="ticker-item">no timelines <span>✦</span></span>
+      <span class="ticker-item">no pressure <span>✦</span></span>
+      <span class="ticker-item">solana <span>✦</span></span>
+      <span class="ticker-item">log off. tune in <span>✦</span></span>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-eyebrow">Solana · Community Token · Present Moment</div>
+
+    <h1 class="hero-title">
+      <span class="main-text glitch" data-text="AFK$">AFK$</span>
+    </h1>
+
+    <p class="hero-tagline">
+      For the tired ones. The overwhelmed ones.<br/>
+      <span>No timelines. No pressure. Just be present.</span>
+    </p>
+
+    <div class="hero-ctas">
+      <a href="https://jup.ag/swap/SOL-kMKX8hBaj3BTRBbeYix9c16EieBP5dih8DTSSwCpump"
+         target="_blank" class="btn-primary">
+        <!-- Jupiter icon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M8 12 C8 8, 16 8, 16 12 C16 16, 8 16, 8 12" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="12" cy="12" r="2" fill="currentColor"/>
+        </svg>
+        Buy on Jupiter
+      </a>
+      <a href="https://dexscreener.com/solana/kMKX8hBaj3BTRBbeYix9c16EieBP5dih8DTSSwCpump"
+         target="_blank" class="btn-secondary">
+        <!-- Dex icon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="16 7 22 7 22 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        DexScreener
+      </a>
+    </div>
+
+    <!-- CA -->
+    <div class="ca-box" onclick="copyCA()">
+      <span class="ca-label">CA</span>
+      <span class="ca-address">kMKX8hBaj3BTRBbeYix9c16EieBP5dih8DTSSwCpump</span>
+      <span class="ca-copy">
+        <svg id="copy-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+        </svg>
+      </span>
+    </div>
+
+    <div class="scroll-hint">
+      <span>scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- MASCOT -->
+  <section class="mascot-section">
+    <span class="mascot-label">The Face of AFK$</span>
+
+    <div class="mascot-frame">
+      <div class="mascot-glow"></div>
+      <!-- Replace src with actual mascot image path when ready -->
+      <div class="mascot-placeholder" id="mascot-slot">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="1">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+        <span class="mascot-placeholder-text">Mascot image</span>
+      </div>
+    </div>
+
+    <div class="mascot-name">The AFK Cat</div>
+    <div class="mascot-sub">present. peaceful. unbothered.</div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- PHILOSOPHY -->
+  <section class="philosophy">
+    <p class="big-quote">"Log off. Tune in."</p>
+    <p>
+      <span>AFK$</span> isn't just a token. It's a state of mind.<br/><br/>
+      We built this for the people tired of always being <span>"on"</span> —
+      the ones who know that the best moments happen
+      when you close the laptop, put the phone down,
+      and just <span>exist.</span>
+    </p>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- COMMUNITY -->
+  <section class="community-section">
+    <span class="section-heading">Join the Community</span>
+
+    <div class="social-row">
+      <!-- X / Twitter -->
+      <a href="https://twitter.com/i/communities/2015421047793955128"
+         target="_blank" class="social-btn x-btn">
+        <span class="social-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+        </span>
+        X Community
+      </a>
+
+      <!-- TikTok -->
+      <a href="#" id="tiktok-link" class="social-btn tiktok-btn">
+        <span class="social-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.77a4.85 4.85 0 01-1.01-.08z"/>
+          </svg>
+        </span>
+        TikTok
+      </a>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">AFK$ · 2025</div>
+    <div class="footer-disclaimer">
+      AFK$ is a community memecoin on Solana. Not financial advice.
+      Do your own research. Markets are volatile. Be present — not just invested.
+    </div>
+  </footer>
+
+</div>
+
+<!-- TOAST -->
+<div class="copy-toast" id="toast">CA Copied ✓</div>
+
+<script>
+// ── COPY CA ──
+function copyCA() {
+  navigator.clipboard.writeText('kMKX8hBaj3BTRBbeYix9c16EieBP5dih8DTSSwCpump').then(() => {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  });
+}
+
+// ── CANVAS STARFIELD ──
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, stars = [], drifts = [];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function initStars() {
+  stars = [];
+  drifts = [];
+  for (let i = 0; i < 140; i++) {
+    stars.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.2 + 0.2, o: Math.random() * 0.5 + 0.1 });
+    drifts.push({ dx: (Math.random() - 0.5) * 0.15, dy: (Math.random() - 0.5) * 0.08 });
+  }
+}
+
+function drawStars() {
+  ctx.clearRect(0, 0, W, H);
+
+  // subtle radial glow
+  const g = ctx.createRadialGradient(W/2, H*0.4, 0, W/2, H*0.4, W*0.6);
+  g.addColorStop(0, 'rgba(125,211,252,0.03)');
+  g.addColorStop(0.5, 'rgba(125,211,252,0.01)');
+  g.addColorStop(1, 'transparent');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  stars.forEach((s, i) => {
+    s.x += drifts[i].dx;
+    s.y += drifts[i].dy;
+    if (s.x < 0) s.x = W;
+    if (s.x > W) s.x = 0;
+    if (s.y < 0) s.y = H;
+    if (s.y > H) s.y = 0;
+
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(180,220,255,${s.o})`;
+    ctx.fill();
+  });
+
+  requestAnimationFrame(drawStars);
+}
+
+window.addEventListener('resize', () => { resize(); initStars(); });
+resize();
+initStars();
+drawStars();
+
+// ── MASCOT: load actual image if available ──
+// The placeholder div will show until you replace with an <img> tag
+// To update: swap out the .mascot-placeholder div with:
+// <img src="YOUR_IMAGE_URL" class="mascot-img" alt="AFK$ Mascot"/>
+
+// ── PARALLAX HERO ──
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  const title = document.querySelector('.hero-title');
+  if (title) title.style.transform = `translateY(${y * 0.15}px)`;
+});
+</script>
+</body>
+</html>
